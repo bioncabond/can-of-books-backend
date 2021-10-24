@@ -1,7 +1,7 @@
 'use strict'
-const mongoose = require ('mongoose'); 
-let bookschema = require('./schema.js');  
+const mongoose = require('mongoose');
+let bookSchema = require('./schema.js');
 //Set up schema 
-const bookmodel = mongoose.model('booksdatabase', bookschema); 
+const bookModel = mongoose.model('booksdatabase', bookSchema);
 
-module.exports=bookmodel;  
+module.exports = bookModel;
