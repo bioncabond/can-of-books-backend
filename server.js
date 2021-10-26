@@ -38,10 +38,21 @@ app.get('/find', searchDatabase);
 
 app.get('/books', (request, response) => {
   console.log(request.query);
-  searchDatabase(request, response)
+  (searchDatabase(request, response))
 }
 )
+// THIS IS NOT SENDING AN ITEM OUT TO THE FRONT--END NEED TO TROUBLESHOOT!!!!!!!!!!!!!!!!
 
+// app.get('/books', (request, response) => {
+//   console.log(request.query);
+//   DatabaseEntry.find((err, item) => {
+//     if (err) return response.status(500).send(err);
+//     else {
+//       response.status(200).send(item);
+//     }
+//   });
+// });
+// THIS IS NOT SENDING A FULL ITEM ONLY THE CONSOLE.LOG!!!!!!!!!!!!!!!!!!!!!!!!! Need to troubleshoot!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 //assign connection to a variable
