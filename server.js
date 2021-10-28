@@ -86,11 +86,27 @@ async function postBooks(req, res) {
   //If the data is what you want, put into the database directly, if not going to message.
   try {
     let postEntry = DatabaseEntry(postObj);
+    console.log(postObj);
     postEntry.save();
     res.status(200).send(postObj);
   }
   catch (err) {
-    res.status(500).send('psot machine broke: ', err.messaage);
+    res.status(500).send('psot machine broke: ', err.message);
+  }
+}
+
+//make deleteBooks function
+async function deleteBooks(req, res) {
+  let { id } = req.params;
+  console.log(id);
+
+  try {
+    //delete the object
+    let deletedObj = await EquipModel.findByIdAndDelete(id);
+    res.status(200).send(deletedObj);
+  }
+  catch (err) {
+    res.status(500).send('delete machine broke:', err.message);
   }
 }
 
@@ -135,17 +151,4 @@ async function searchDatabase(req, res) {
   }
 }
 
-//make deleteBooks function
-async function deleteBooks(req, res) {
-  let { id } = req.params;
-  console.log(id);
 
-  try {
-    //delete the object
-    let deletedObj = await EquipModel.findByIdAndDelete(id);
-    res.status(200).send(deletedObj);
-  }
-  catch (err) {
-    res.status(500).send('delete machine broke:', err.message);
-  }
-}
