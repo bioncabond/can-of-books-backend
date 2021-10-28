@@ -6,6 +6,8 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
 //Bring in the Mongo 
 const mongoose = require('mongoose');
 const PORT = process.env.PORT || 3001;
@@ -22,18 +24,25 @@ let bookSchema = require('./Modules/schema.js');
 const DatabaseEntry = mongoose.model('booksdatabase', bookSchema);
 
 
-//Testing Route set-up 
+//Route set-up 
 app.get('/', (request, response) => response.status(200).send('This is the root. It works!'));
-
-
 app.get('/test', (request, response) => {
   response.send('test request received')
 })
+app.post('/test/:info', (req, res) => {
+  try {
+    console.log('\nQuery:', req.query, '\nParams:', req.params, '\nBody:', req.body);
+    res.status(200).send('Posted!');
 
+  }
+  catch (e) {
+    console.log('error:', e.message);
+  }
+}
+);
+app.get('/clear', bombTheBase);
 app.get('/seed', seed);
-
 app.get('/find', searchDatabase);
-
 app.get('/books', (request, response) => {
   console.log(request.query);
   DatabaseEntry.find((err, item) => {
@@ -43,6 +52,9 @@ app.get('/books', (request, response) => {
     }
   });
 });
+
+app.post('/books', postBooks);
+app.delete('/books/:id', deleteBooks);
 
 //assign connection to a variable
 const db = mongoose.connection;
@@ -54,12 +66,41 @@ db.once('open', () => console.log('mongo database is connected!'));
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
 
 
+//clear the database
+async function bombTheBase(req, res) {
+  try {
+    await DatabaseEntry.deleteMany({});
+    console.log('Database cleared')
+      ;
+    res.status(200).send('cleared');
+  }
+  catch (e) {
+    console.log('error:', e.message);
+  }
+}
+
+//Create postBooks function 
+async function postBooks(req, res) {
+  let postObj = req.body;
+  console.log(postObj);
+  //If the data is what you want, put into the database directly, if not going to message.
+  try {
+    let postEntry = DatabaseEntry(postObj);
+    postEntry.save();
+    res.status(200).send(postObj);
+  }
+  catch (err) {
+    res.status(500).send('psot machine broke: ', err.messaage);
+  }
+}
+
 //Find All the entries in the database
 DatabaseEntry.find((err, item) => {
   if (err) return console.error(err);
-  console.log(item);
+  // console.log(item);
 })
 
+//test data manually entered and seed the database
 function seed(req, res) {
   const seedArr = [
     {
@@ -69,7 +110,7 @@ function seed(req, res) {
       name: 'Jae', description: 'avid reader', status: 'still here', email: 'wethebestmusic@gmail.net',
     },
     {
-      name: 'JP', description: 'flawless', status: 'ghost', email: 'jp@teachers-R-us.com',
+      name: 'JP', description: 'flawless', status: 'ghostbuster', email: 'jp@teachers-R-us.com',
     },
   ]
   seedArr.forEach(user => {
@@ -79,6 +120,7 @@ function seed(req, res) {
   res.status(200).send('Seeded Database');
 }
 
+//make searchDatabase function to get the email 
 async function searchDatabase(req, res) {
   console.log(req)
   if (req.query.email) {
@@ -90,5 +132,20 @@ async function searchDatabase(req, res) {
   }
   else {
     res.status(200).send([]);
+  }
+}
+
+//make deleteBooks function
+async function deleteBooks(req, res) {
+  let { id } = req.params;
+  console.log(id);
+
+  try {
+    //delete the object
+    let deletedObj = await EquipModel.findByIdAndDelete(id);
+    res.status(200).send(deletedObj);
+  }
+  catch (err) {
+    res.status(500).send('delete machine broke:', err.message);
   }
 }
