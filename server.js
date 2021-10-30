@@ -23,6 +23,14 @@ let bookModel = require('./Modules/model.js');
 let bookSchema = require('./Modules/schema.js');
 const DatabaseEntry = mongoose.model('booksdatabase', bookSchema);
 
+//assign connection to a variable
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error: '));
+
+db.once('open', () => console.log('mongo database is connected!'));
+
+
 
 //Route set-up 
 app.get('/', (request, response) => response.status(200).send('This is the root. It works!'));
@@ -56,12 +64,7 @@ app.get('/books', (request, response) => {
 app.post('/books', postBooks);
 app.delete('/books/:id', deleteBooks);
 
-//assign connection to a variable
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'connection error: '));
-
-db.once('open', () => console.log('mongo database is connected!'));
+app.get('*', ((request, response) => response.status(400).send('no route')));
 
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
 
@@ -79,37 +82,6 @@ async function bombTheBase(req, res) {
   }
 }
 
-//Create postBooks function 
-async function postBooks(req, res) {
-  let postObj = req.body;
-  console.log(postObj);
-  //If the data is what you want, put into the database directly, if not going to message.
-  try {
-    let postEntry = DatabaseEntry(postObj);
-    console.log(postObj);
-    postEntry.save();
-    res.status(200).send(postObj);
-  }
-  catch (err) {
-    res.status(500).send('psot machine broke: ', err.message);
-  }
-}
-
-//make deleteBooks function
-async function deleteBooks(req, res) {
-  let { id } = req.params;
-  console.log(id);
-
-  try {
-    //delete the object
-    let deletedObj = await EquipModel.findByIdAndDelete(id);
-    res.status(200).send(deletedObj);
-  }
-  catch (err) {
-    res.status(500).send('delete machine broke:', err.message);
-  }
-}
-
 //Find All the entries in the database
 DatabaseEntry.find((err, item) => {
   if (err) return console.error(err);
@@ -120,13 +92,13 @@ DatabaseEntry.find((err, item) => {
 function seed(req, res) {
   const seedArr = [
     {
-      name: 'Bionca', description: 'Baller', status: 'struggling', email: 'bionca@aol.com',
+      name: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bionca@aol.com',
     },
     {
-      name: 'Jae', description: 'avid reader', status: 'still here', email: 'wethebestmusic@gmail.net',
+      name: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'wethebestmusic@gmail.net',
     },
     {
-      name: 'JP', description: 'flawless', status: 'ghostbuster', email: 'jp@teachers-R-us.com',
+      name: 'Ghostbusters', description: 'People go exorcise ghosts with cool technologies and a strong team spirit.', status: 'Ghostbuster', email: 'jp@teachers-R-us.com',
     },
   ]
   seedArr.forEach(user => {
@@ -151,4 +123,33 @@ async function searchDatabase(req, res) {
   }
 }
 
+//Create postBooks function 
+async function postBooks(req, res) {
+  try {
+    let bookInfo = req.body;
+    console.log(bookInfo);
+    //If the data is what you want, put into the database directly, if not going to message.
+    let postedBook = bookModel.create(bookInfo);
+    postedBook.save();
+    console.log('postedBook: ', postedBook);
+    res.status(200).send(postedBook);
+  }
+  catch (err) {
+    res.status(500).send('post machine broke: ', err.message);
+  }
+}
 
+//make deleteBooks function
+async function deleteBooks(req, res) {
+  try {
+    let { id } = req.params;
+    console.log(id);
+
+    //delete the object
+    let deletedBook = await DatabaseEntry.findByIdAndDelete(id);
+    res.status(200).send(deletedBook);
+  }
+  catch (err) {
+    res.status(500).send('delete machine broke:', err.message);
+  }
+}
