@@ -92,13 +92,13 @@ DatabaseEntry.find((err, item) => {
 function seed(req, res) {
   const seedArr = [
     {
-      name: 'Bionca', description: 'Baller', status: 'struggling', email: 'bionca@aol.com',
+      name: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bionca@aol.com',
     },
     {
-      name: 'Jae', description: 'avid reader', status: 'still here', email: 'wethebestmusic@gmail.net',
+      name: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'wethebestmusic@gmail.net',
     },
     {
-      name: 'JP', description: 'flawless', status: 'ghostbuster', email: 'jp@teachers-R-us.com',
+      name: 'Ghostbusters', description: 'People go exorcise ghosts with cool technologies and a strong team spirit.', status: 'Ghostbuster', email: 'jp@teachers-R-us.com',
     },
   ]
   seedArr.forEach(user => {
