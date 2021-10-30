@@ -63,6 +63,8 @@ app.get('/books', (request, response) => {
 
 app.post('/books', postBooks);
 app.delete('/books/:id', deleteBooks);
+app.put('/books/:id', putBooks);
+
 
 app.get('*', ((request, response) => response.status(400).send('no route')));
 
@@ -92,13 +94,13 @@ DatabaseEntry.find((err, item) => {
 function seed(req, res) {
   const seedArr = [
     {
-      name: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bionca@aol.com',
+      title: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bionca@aol.com',
     },
     {
-      name: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'wethebestmusic@gmail.net',
+      title: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'wethebestmusic@gmail.net',
     },
     {
-      name: 'Ghostbusters', description: 'People go exorcise ghosts with cool technologies and a strong team spirit.', status: 'Ghostbuster', email: 'jp@teachers-R-us.com',
+      title: 'Ghostbusters', description: 'People go exorcise ghosts with cool technologies and a strong team spirit.', status: 'Ghostbuster', email: 'jp@teachers-R-us.com',
     },
   ]
   seedArr.forEach(user => {
@@ -129,7 +131,7 @@ async function postBooks(req, res) {
     let bookInfo = req.body;
     console.log(bookInfo);
     //If the data is what you want, put into the database directly, if not going to message.
-    let postedBook = bookModel.create(bookInfo);
+    let postedBook = await bookModel.create(bookInfo);
     postedBook.save();
     console.log('postedBook: ', postedBook);
     res.status(200).send(postedBook);
@@ -139,17 +141,33 @@ async function postBooks(req, res) {
   }
 }
 
-//make deleteBooks function
+//Make deleteBooks function
 async function deleteBooks(req, res) {
   try {
     let { id } = req.params;
     console.log(id);
-
+    postEquip
     //delete the object
     let deletedBook = await DatabaseEntry.findByIdAndDelete(id);
     res.status(200).send(deletedBook);
   }
   catch (err) {
     res.status(500).send('delete machine broke:', err.message);
+  }
+}
+
+//Make the putBooks function
+async function putBooks(req, res) {
+  let updatedBookInfo = req.body;
+  console.log('putBody:', updatedBookInfo);
+  let id = req.params.id;
+  console.log('putParam:', id);
+  try {
+    const updatedBook = await bookModel.findByIdAndUpdate(id, updatedBookInfo, { new: true, overwrite: true });
+    console.log(updatedBook);
+    res.status(200).send(updatedBook);
+  }
+  catch (err) {
+    res.status(500).send(`PUT machine broke: ${err.message}`);
   }
 }
