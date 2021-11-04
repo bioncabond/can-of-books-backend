@@ -144,15 +144,15 @@ async function postBooks(req, res) {
 //Make deleteBooks function
 async function deleteBooks(req, res) {
   try {
-    let { id } = req.params;
+    let id = req.params.id;
     console.log(id);
-    postEquip
+    // postEquip
     //delete the object
     let deletedBook = await DatabaseEntry.findByIdAndDelete(id);
     res.status(200).send(deletedBook);
   }
   catch (err) {
-    res.status(500).send('delete machine broke:', err.message);
+    res.status(500).send(err.message);
   }
 }
 
