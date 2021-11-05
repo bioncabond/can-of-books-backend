@@ -1,5 +1,5 @@
 'use strict';
-////free pookie! 
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -11,6 +11,12 @@ app.use(express.json());
 //Bring in the Mongo 
 const mongoose = require('mongoose');
 const PORT = process.env.PORT || 3001;
+
+
+//Create a collection called booksdatabase
+mongoose.connect(process.env.MONGO_CONNECTION_STRING,
+  { useNewUrlParser: true, useUnifiedTopology: true }
+);
 
 const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
@@ -25,11 +31,6 @@ function getKey(header, callback) {
     callback(null, signingKey);
   });
 }
-
-//Create a collection called booksdatabase
-mongoose.connect(process.env.MONGO_CONNECTION_STRING,
-  { useNewUrlParser: true, useUnifiedTopology: true }
-);
 
 //Bring in modules and setting up the database
 let bookModel = require('./Modules/model.js');
@@ -89,7 +90,7 @@ async function bombTheBase(req, res) {
   }
 }
 
-//Find All the entries in the database
+// //Find All the entries in the database
 // DatabaseEntry.find((err, item) => {
 //   if (err) return console.error(err);
 //   // console.log(item);
@@ -99,10 +100,10 @@ async function bombTheBase(req, res) {
 function seed(req, res) {
   const seedArr = [
     {
-      title: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bionca@aol.com',
+      title: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bioncabond@gmail.com',
     },
     {
-      title: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'wethebestmusic@gmail.net',
+      title: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'bioncabond@gmail.com',
     },
     {
       title: 'Ghostbusters', description: 'People go exorcise ghosts with cool technologies and a strong team spirit.', status: 'Ghostbuster', email: 'jp@teachers-R-us.com',
@@ -130,14 +131,16 @@ function seed(req, res) {
 //   }
 // }
 
-async function getBooks(request, response) {
+async function getBooks(req, response) {
   try {
     let filterQuery = {};
     if (req.query.email) {
       let { email } = req.query;
       filterQuery.email = email;
     }
-    const item = await DatabaseEntry.find(filterQ);
+    console.log('query:', req.query, 'headers:', req.headers);
+    console.log('filter query:', filterQuery);
+    const item = await DatabaseEntry.find(filterQuery);
     let token = '';
     if (!req.headers.authorization) token = '';
     else {
@@ -147,24 +150,15 @@ async function getBooks(request, response) {
     jwt.verify(token, getKey, {}, function (err, user) {
       if (err) res.status(500).send(`Auth Machine Broke: ${err.message}`);
       else {
-        res.status(200).send(item);
+        response.status(200).send(item);
       }
     })
 
   }
   catch (error) {
-    res.status(500).send(`error retrieving books data:${error.message}`);
+    response.status(500).send(`Get Machine deluxe auth edition broke:${error.message}`);
   }
 }
-// app.get('/books', (request, response) => {
-
-//   DatabaseEntry.find((err, item) => {
-//     if (err) return response.status(500).send(err);
-//     else {
-//       response.status(200).send(item);
-//     }
-//   });
-// });
 
 //Create postBooks function 
 async function postBooks(req, res) {
@@ -185,15 +179,15 @@ async function postBooks(req, res) {
 //Make deleteBooks function
 async function deleteBooks(req, res) {
   try {
-    let { id } = req.params;
+    let id = req.params.id;
     console.log(id);
-    postEquip
+    // postEquip
     //delete the object
     let deletedBook = await DatabaseEntry.findByIdAndDelete(id);
     res.status(200).send(deletedBook);
   }
   catch (err) {
-    res.status(500).send('delete machine broke:', err.message);
+    res.status(500).send(err.message);
   }
 }
 
