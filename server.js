@@ -100,10 +100,10 @@ async function bombTheBase(req, res) {
 function seed(req, res) {
   const seedArr = [
     {
-      title: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bionca@aol.com',
+      title: 'The Color Purple by Alice Walker', description: 'A story about a woman finding herself.', status: 'Lit', email: 'bioncabond@gmail.com',
     },
     {
-      title: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'wethebestmusic@gmail.net',
+      title: 'Eragon', description: 'A boy finds a dragon egg and adventures unfold.', status: 'Fantasy', email: 'bioncabond@gmail.com',
     },
     {
       title: 'Ghostbusters', description: 'People go exorcise ghosts with cool technologies and a strong team spirit.', status: 'Ghostbuster', email: 'jp@teachers-R-us.com',
@@ -131,14 +131,16 @@ function seed(req, res) {
 //   }
 // }
 
-async function getBooks(request, response) {
+async function getBooks(req, response) {
   try {
     let filterQuery = {};
     if (req.query.email) {
       let { email } = req.query;
       filterQuery.email = email;
     }
-    const item = await DatabaseEntry.find(filterQ);
+    console.log('query:', req.query, 'headers:', req.headers);
+    console.log('filter query:', filterQuery);
+    const item = await DatabaseEntry.find(filterQuery);
     let token = '';
     if (!req.headers.authorization) token = '';
     else {
@@ -148,7 +150,7 @@ async function getBooks(request, response) {
     jwt.verify(token, getKey, {}, function (err, user) {
       if (err) res.status(500).send(`Auth Machine Broke: ${err.message}`);
       else {
-        res.status(200).send(item);
+        response.status(200).send(item);
       }
     })
 
