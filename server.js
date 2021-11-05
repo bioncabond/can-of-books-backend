@@ -18,6 +18,20 @@ mongoose.connect(process.env.MONGO_CONNECTION_STRING,
   { useNewUrlParser: true, useUnifiedTopology: true }
 );
 
+const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa');
+
+var client = jwksClient({
+  //jwksUri: Account specific:  settings -> advanced settings -> endpoint -> JSON Web Key Set
+  jwksUri: 'https://dev-3hgg7hjn.us.auth0.com/.well-known/jwks.json'
+});
+function getKey(header, callback) {
+  client.getSigningKey(header.kid, function (err, key) {
+    var signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
+}
+
 //Bring in modules and setting up the database
 let bookModel = require('./Modules/model.js');
 let bookSchema = require('./Modules/schema.js');
@@ -50,16 +64,8 @@ app.post('/test/:info', (req, res) => {
 );
 app.get('/clear', bombTheBase);
 app.get('/seed', seed);
-app.get('/find', searchDatabase);
-app.get('/books', (request, response) => {
-  console.log(request.query);
-  DatabaseEntry.find((err, item) => {
-    if (err) return response.status(500).send(err);
-    else {
-      response.status(200).send(item);
-    }
-  });
-});
+// app.get('/find', searchDatabase);
+app.get('/books', getBooks);
 
 app.post('/books', postBooks);
 app.delete('/books/:id', deleteBooks);
@@ -84,11 +90,11 @@ async function bombTheBase(req, res) {
   }
 }
 
-//Find All the entries in the database
-DatabaseEntry.find((err, item) => {
-  if (err) return console.error(err);
-  // console.log(item);
-})
+// //Find All the entries in the database
+// DatabaseEntry.find((err, item) => {
+//   if (err) return console.error(err);
+//   // console.log(item);
+// })
 
 //test data manually entered and seed the database
 function seed(req, res) {
@@ -111,17 +117,44 @@ function seed(req, res) {
 }
 
 //make searchDatabase function to get the email 
-async function searchDatabase(req, res) {
-  console.log(req)
-  if (req.query.email) {
-    let { email } = req.query;
+// async function searchDatabase(req, res) {
+//   console.log(req)
+//   if (req.query.email) {
+//     let { email } = req.query;
+//     let filterQuery = {};
+//     filterQuery.email = email;
+//     const item = await DatabaseEntry.find(filterQuery);
+//     res.status(200).send(item);
+//   }
+//   else {
+//     res.status(200).send([]);
+//   }
+// }
+
+async function getBooks(request, response) {
+  try {
     let filterQuery = {};
-    filterQuery.email = email;
-    const item = await DatabaseEntry.find(filterQuery);
-    res.status(200).send(item);
+    if (req.query.email) {
+      let { email } = req.query;
+      filterQuery.email = email;
+    }
+    const item = await DatabaseEntry.find(filterQ);
+    let token = '';
+    if (!req.headers.authorization) token = '';
+    else {
+      token = req.headers.authorization.split([' '])[1];
+    }
+
+    jwt.verify(token, getKey, {}, function (err, user) {
+      if (err) res.status(500).send(`Auth Machine Broke: ${err.message}`);
+      else {
+        res.status(200).send(item);
+      }
+    })
+
   }
-  else {
-    res.status(200).send([]);
+  catch (error) {
+    response.status(500).send(`Get Machine deluxe auth edition broke:${error.message}`);
   }
 }
 
